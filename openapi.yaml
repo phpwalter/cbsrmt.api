@@ -1,0 +1,1025 @@
+openapi: 3.0.3
+
+info:
+  title: CBS Radio Mystery Theater Episode Guide API
+  version: 1.0.0
+  description: >-
+    Public API for browsing and searching the CBS Radio Mystery Theater episode
+    guide, including episode metadata, cast, writers, genres, artwork, and audio
+    stream metadata. Public catalog reads do not require authentication. User
+    and administrative write operations require OAuth 2.0 authorization.
+
+servers:
+  - url: https://virtserver.swaggerhub.com/otrwalter/CBSRMT/1.0.0
+    description: CBS Radio Mystery Theater API
+
+tags:
+  - name: System
+    description: Service health and operational endpoints.
+  - name: Episodes
+    description: CBS Radio Mystery Theater episode guide resources.
+  - name: Cast
+    description: Cast members and their episode appearances.
+  - name: Writers
+    description: Writers and their episode credits.
+  - name: Genres
+    description: Episode genres and genre-based browsing.
+  - name: Search
+    description: Cross-catalog search operations.
+  - name: Users
+    description: Authenticated user resources.
+
+paths:
+  /ping:
+    get:
+      tags: [System]
+      operationId: ping
+      summary: Checks whether the API service is available.
+      security: []
+      responses:
+        '200':
+          description: Service is available.
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/RateLimitLimit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/RateLimitRemaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/RateLimitReset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PingResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /episodes:
+    get:
+      tags: [Episodes]
+      operationId: listEpisodes
+      summary: Lists episodes.
+      description: >-
+        Returns a paginated list of CBS Radio Mystery Theater episodes. Results
+        may be filtered and sorted using the available query parameters.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/EpisodeSearch'
+        - $ref: '#/components/parameters/Year'
+        - $ref: '#/components/parameters/Genre'
+        - $ref: '#/components/parameters/CastName'
+        - $ref: '#/components/parameters/WriterName'
+        - $ref: '#/components/parameters/EpisodeSort'
+        - $ref: '#/components/parameters/SortOrder'
+      responses:
+        '200':
+          description: Paginated episode results.
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/RateLimitLimit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/RateLimitRemaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/RateLimitReset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EpisodeCollection'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /episodes/{episodeNumber}:
+    parameters:
+      - $ref: '#/components/parameters/EpisodeNumber'
+    get:
+      tags: [Episodes]
+      operationId: getEpisodeByNumber
+      summary: Retrieves an episode by episode number.
+      security: []
+      responses:
+        '200':
+          description: Episode found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Episode'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /episodes/{episodeNumber}/cast:
+    parameters:
+      - $ref: '#/components/parameters/EpisodeNumber'
+    get:
+      tags: [Episodes, Cast]
+      operationId: getEpisodeCast
+      summary: Lists cast members credited for an episode.
+      security: []
+      responses:
+        '200':
+          description: Episode cast.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CastMember'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /episodes/{episodeNumber}/writers:
+    parameters:
+      - $ref: '#/components/parameters/EpisodeNumber'
+    get:
+      tags: [Episodes, Writers]
+      operationId: getEpisodeWriters
+      summary: Lists writers credited for an episode.
+      security: []
+      responses:
+        '200':
+          description: Episode writers.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Writer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /cast:
+    get:
+      tags: [Cast]
+      operationId: listCast
+      summary: Lists cast members.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: search
+          in: query
+          description: Case-insensitive cast-name search.
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        '200':
+          description: Paginated cast results.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CastCollection'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /cast/{castId}:
+    parameters:
+      - $ref: '#/components/parameters/CastId'
+    get:
+      tags: [Cast]
+      operationId: getCastMember
+      summary: Retrieves a cast member.
+      security: []
+      responses:
+        '200':
+          description: Cast member found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CastMember'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /cast/{castId}/episodes:
+    parameters:
+      - $ref: '#/components/parameters/CastId'
+    get:
+      tags: [Cast, Episodes]
+      operationId: listEpisodesByCastMember
+      summary: Lists episodes featuring a cast member.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/EpisodeSort'
+        - $ref: '#/components/parameters/SortOrder'
+      responses:
+        '200':
+          description: Paginated episode results.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EpisodeCollection'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /writers:
+    get:
+      tags: [Writers]
+      operationId: listWriters
+      summary: Lists writers.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: search
+          in: query
+          description: Case-insensitive writer-name search.
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        '200':
+          description: Paginated writer results.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WriterCollection'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /writers/{writerId}:
+    parameters:
+      - $ref: '#/components/parameters/WriterId'
+    get:
+      tags: [Writers]
+      operationId: getWriter
+      summary: Retrieves a writer.
+      security: []
+      responses:
+        '200':
+          description: Writer found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Writer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /writers/{writerId}/episodes:
+    parameters:
+      - $ref: '#/components/parameters/WriterId'
+    get:
+      tags: [Writers, Episodes]
+      operationId: listEpisodesByWriter
+      summary: Lists episodes credited to a writer.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/EpisodeSort'
+        - $ref: '#/components/parameters/SortOrder'
+      responses:
+        '200':
+          description: Paginated episode results.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EpisodeCollection'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /genres:
+    get:
+      tags: [Genres]
+      operationId: listGenres
+      summary: Lists episode genres.
+      security: []
+      responses:
+        '200':
+          description: Genre results.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Genre'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /genres/{genreId}/episodes:
+    parameters:
+      - $ref: '#/components/parameters/GenreId'
+    get:
+      tags: [Genres, Episodes]
+      operationId: listEpisodesByGenre
+      summary: Lists episodes in a genre.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/EpisodeSort'
+        - $ref: '#/components/parameters/SortOrder'
+      responses:
+        '200':
+          description: Paginated episode results.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EpisodeCollection'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /search:
+    get:
+      tags: [Search]
+      operationId: searchCatalog
+      summary: Searches the CBS RMT catalog.
+      description: Searches episode titles and plots and returns matching catalog resources.
+      security: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search text.
+          schema:
+            type: string
+            minLength: 1
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Search results.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResults'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /users:
+    get:
+      tags: [Users]
+      operationId: listUsers
+      summary: Lists users.
+      security:
+        - application: [read]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Paginated user results.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCollection'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /users/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    get:
+      tags: [Users]
+      operationId: getUserById
+      summary: Retrieves a user by ID.
+      security:
+        - application: [read]
+      responses:
+        '200':
+          description: User found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags: [Users]
+      operationId: updateUser
+      summary: Updates a user.
+      security:
+        - application: [write]
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '200':
+          description: Updated user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags: [Users]
+      operationId: deleteUser
+      summary: Removes a user.
+      security:
+        - application: [write]
+      responses:
+        '204':
+          description: User removed successfully.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  parameters:
+    EpisodeNumber:
+      name: episodeNumber
+      in: path
+      required: true
+      description: CBS Radio Mystery Theater episode number.
+      schema:
+        type: integer
+        minimum: 1
+      example: 496
+
+    CastId:
+      name: castId
+      in: path
+      required: true
+      description: Cast member identifier.
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+
+    WriterId:
+      name: writerId
+      in: path
+      required: true
+      description: Writer identifier.
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+
+    GenreId:
+      name: genreId
+      in: path
+      required: true
+      description: Genre identifier.
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+
+    UserId:
+      name: userId
+      in: path
+      required: true
+      description: User identifier.
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+
+    Page:
+      name: page
+      in: query
+      description: One-based result page number.
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+
+    Limit:
+      name: limit
+      in: query
+      description: Number of records returned per page.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 5
+
+    EpisodeSearch:
+      name: search
+      in: query
+      description: Case-insensitive search of episode title and plot text.
+      schema:
+        type: string
+        minLength: 1
+
+    Year:
+      name: year
+      in: query
+      description: Filters by original broadcast year.
+      schema:
+        type: integer
+        minimum: 1974
+        maximum: 1982
+
+    Genre:
+      name: genre
+      in: query
+      description: Filters episodes by genre name.
+      schema:
+        type: string
+        minLength: 1
+
+    CastName:
+      name: cast
+      in: query
+      description: Filters episodes by cast-member name.
+      schema:
+        type: string
+        minLength: 1
+
+    WriterName:
+      name: writer
+      in: query
+      description: Filters episodes by writer name.
+      schema:
+        type: string
+        minLength: 1
+
+    EpisodeSort:
+      name: sort
+      in: query
+      description: Field used to sort episode results.
+      schema:
+        type: string
+        enum: [episode_number, episode_name, broadcast_date]
+        default: episode_number
+
+    SortOrder:
+      name: order
+      in: query
+      description: Sort direction.
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: asc
+
+  headers:
+    RateLimitLimit:
+      description: Request limit for the current rate-limit window.
+      schema:
+        type: integer
+        minimum: 0
+    RateLimitRemaining:
+      description: Requests remaining in the current rate-limit window.
+      schema:
+        type: integer
+        minimum: 0
+    RateLimitReset:
+      description: UTC date/time at which the current rate-limit window resets.
+      schema:
+        type: string
+        format: date-time
+
+  responses:
+    BadRequest:
+      description: The request is invalid.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Authentication is required or invalid.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Forbidden:
+      description: The authenticated client is not authorized for this operation.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    InternalServerError:
+      description: The server encountered an unexpected error.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Error'
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    PingResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          example: ok
+
+    Pagination:
+      type: object
+      required: [page, limit, total, pages]
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        limit:
+          type: integer
+          minimum: 1
+          example: 5
+        total:
+          type: integer
+          minimum: 0
+          example: 1399
+        pages:
+          type: integer
+          minimum: 0
+          example: 280
+
+    Episode:
+      type: object
+      required:
+        - episode_number
+        - episode_name
+      properties:
+        episode_number:
+          type: integer
+          minimum: 1
+          description: Canonical public identifier for an episode.
+          example: 496
+        episode_name:
+          type: string
+          description: Episode title.
+          example: Loser Takes All
+        episode_plot:
+          type: string
+          nullable: true
+          description: Episode plot or synopsis.
+        broadcast_date:
+          type: string
+          format: date
+          nullable: true
+          description: Original broadcast date when available.
+        thumbnail:
+          type: string
+          format: uri-reference
+          nullable: true
+          description: Episode artwork or thumbnail URL.
+        audio:
+          $ref: '#/components/schemas/AudioMetadata'
+        genres:
+          type: array
+          items:
+            $ref: '#/components/schemas/Genre'
+          readOnly: true
+        cast:
+          type: array
+          items:
+            $ref: '#/components/schemas/CastMember'
+          readOnly: true
+        writers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Writer'
+          readOnly: true
+
+    EpisodeSummary:
+      type: object
+      required:
+        - episode_number
+        - episode_name
+      properties:
+        episode_number:
+          type: integer
+          minimum: 1
+          example: 496
+        episode_name:
+          type: string
+          example: Loser Takes All
+        episode_plot:
+          type: string
+          nullable: true
+        broadcast_date:
+          type: string
+          format: date
+          nullable: true
+        thumbnail:
+          type: string
+          format: uri-reference
+          nullable: true
+        audio:
+          $ref: '#/components/schemas/AudioMetadata'
+
+    EpisodeCollection:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/EpisodeSummary'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    AudioMetadata:
+      type: object
+      required: [available]
+      description: >-
+        Metadata describing externally hosted episode audio. The API returns
+        stream locations and does not proxy or serve the audio content itself.
+      properties:
+        available:
+          type: boolean
+          example: true
+        stream_url:
+          type: string
+          format: uri
+          nullable: true
+          description: URL clients may use to access the episode audio stream.
+        duration_seconds:
+          type: integer
+          minimum: 0
+          nullable: true
+          description: Audio duration in seconds when known.
+        media_type:
+          type: string
+          nullable: true
+          description: Audio media type when known.
+          example: audio/mpeg
+
+    CastMember:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+        first_name:
+          type: string
+          nullable: true
+        last_name:
+          type: string
+          nullable: true
+        display_name:
+          type: string
+          nullable: true
+          description: Display-ready cast member name.
+
+    CastCollection:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CastMember'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    Writer:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+        first_name:
+          type: string
+          nullable: true
+        last_name:
+          type: string
+          nullable: true
+        display_name:
+          type: string
+          nullable: true
+          description: Display-ready writer name.
+
+    WriterCollection:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Writer'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    Genre:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+        name:
+          type: string
+
+    SearchResults:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: object
+          required: [episodes, cast, writers]
+          properties:
+            episodes:
+              type: array
+              items:
+                $ref: '#/components/schemas/EpisodeSummary'
+            cast:
+              type: array
+              items:
+                $ref: '#/components/schemas/CastMember'
+            writers:
+              type: array
+              items:
+                $ref: '#/components/schemas/Writer'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    User:
+      type: object
+      required: [id, username, first_name, last_name]
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          readOnly: true
+          description: User identifier.
+        username:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        avatar:
+          $ref: '#/components/schemas/Image'
+
+    UserUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        username:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        avatar:
+          $ref: '#/components/schemas/Image'
+
+    UserCollection:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    Image:
+      type: object
+      properties:
+        avatar:
+          type: string
+          format: byte
+          description: Base64-encoded avatar image content.
+
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        type:
+          type: string
+          format: uri-reference
+          nullable: true
+          description: Problem type identifier when available.
+        title:
+          type: string
+          nullable: true
+          description: Short human-readable problem summary.
+        status:
+          type: integer
+          nullable: true
+          description: HTTP status code.
+        code:
+          type: string
+          description: Stable application error code.
+        message:
+          type: string
+          description: Human-readable error detail.
+        instance:
+          type: string
+          format: uri-reference
+          nullable: true
+          description: Problem occurrence identifier when available.
+
+  securitySchemes:
+    application:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: http://example.com/oauth/token
+          scopes:
+            read: Allows reading protected resources.
+            write: Allows modifying protected resources.
