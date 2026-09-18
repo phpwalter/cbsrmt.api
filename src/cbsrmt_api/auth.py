@@ -84,3 +84,41 @@ async def require_read(request: Request) -> Principal:
 
 async def require_write(request: Request) -> Principal:
     return await require_scopes(request, {"write"})
+
+
+def issue_local_token(client_id: str, client_secret: str, scope: str, request: Request) -> dict:
+    settings = request.app.state.settings
+    if not settings.jwt_secret or not settings.oauth_client_id or not settings.oauth_client_secret:
+        raise HTTPException(status_code=503, detail="Local OAuth token issuance is not configured.")
+    if client_id != settings.oauth_client_id or client_secret != settings.oauth_client_secret:
+        raise HTTPException(status_code=401, detail="Invalid client credentials.")
+
+    import time
+
+    now = int(time.time())
+    requested = frozenset(item for item in scope.split() if item)
+    allowed = {"read", "write"}
+    if not requested:
+        requested = frozenset({"read"})
+    if not requested.issubset(allowed):
+        raise HTTPException(status_code=400, detail="Unsupported scope requested.")
+
+    claims = {
+        "sub": client_id,
+        "scope": " ".join(sorted(requested)),
+        "iat": now,
+        "exp": now + settings.oauth_token_ttl_seconds,
+    }
+    if settings.auth_issuer:
+        claims["iss"] = settings.auth_issuer
+    if settings.auth_audience:
+        claims["aud"] = settings.auth_audience
+
+    algorithm = settings.algorithms[0]
+    token = jwt.encode(claims, settings.jwt_secret, algorithm=algorithm)
+    return {
+        "access_token": token,
+        "token_type": "Bearer",
+        "expires_in": settings.oauth_token_ttl_seconds,
+        "scope": claims["scope"],
+    }
