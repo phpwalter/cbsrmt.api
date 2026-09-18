@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+from datetime import datetime, time, timedelta
+from threading import Lock
 from typing import Any, Literal
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, Request, Response
 from pydantic import BaseModel, ConfigDict
@@ -10,6 +13,54 @@ from .auth import Principal, issue_local_token, require_read, require_write
 router = APIRouter()
 READ_DEPENDENCY = Depends(require_read)
 WRITE_DEPENDENCY = Depends(require_write)
+
+
+CENTRAL = ZoneInfo("America/Chicago")
+_today_cache_lock = Lock()
+_today_cache: dict[str, Any] = {}
+
+
+def _today_cache_key(now: datetime) -> str:
+    return now.date().isoformat()
+
+
+def _end_of_day(now: datetime) -> datetime:
+    tomorrow = now.date() + timedelta(days=1)
+    return datetime.combine(tomorrow, time.min, tzinfo=CENTRAL) - timedelta(microseconds=1)
+
+
+@router.get("/episode/today", operation_id="getEpisodeToday")
+def get_episode_today(request: Request):
+    now = datetime.now(CENTRAL)
+    key = _today_cache_key(now)
+
+    with _today_cache_lock:
+        cached = _today_cache.get(key)
+        if cached is not None and cached["expires_at"] > now:
+            return cached["payload"]
+
+    target_date = now.date().replace(year=now.year - 50)
+    resolved = db(request).scalar_json(
+        "SELECT api.get_anniversary_broadcasts(%s)",
+        (target_date,),
+    )
+
+    expires_at = _end_of_day(now)
+    payload = {
+        "today": now.date().isoformat(),
+        "anniversary_date": target_date.isoformat(),
+        "years_ago": 50,
+        "resolved_broadcast_date": resolved.get("resolved_broadcast_date") if resolved else None,
+        "fallback_used": bool(resolved and resolved.get("fallback_used")),
+        "broadcasts": resolved.get("broadcasts", []) if resolved else [],
+        "cache_expires_at": expires_at.isoformat(),
+    }
+
+    with _today_cache_lock:
+        _today_cache.clear()
+        _today_cache[key] = {"expires_at": expires_at, "payload": payload}
+
+    return payload
 
 
 @router.post("/oauth/token", include_in_schema=False)
