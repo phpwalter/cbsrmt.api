@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date, datetime, time, timedelta
+from datetime import UTC, date, datetime, time, timedelta
 from threading import Lock
 from typing import Any, Literal
 from zoneinfo import ZoneInfo
@@ -47,7 +47,7 @@ def get_episode_today(request: Request, response: Response):
         if cached is not None and cached["expires_at"] > now:
             ttl = max(int((cached["expires_at"] - now).total_seconds()), 0)
             response.headers["Cache-Control"] = f"public, max-age={ttl}"
-            response.headers["Expires"] = cached["expires_at"].strftime("%a, %d %b %Y %H:%M:%S GMT")
+            response.headers["Expires"] = cached["expires_at"].astimezone(UTC).strftime("%a, %d %b %Y %H:%M:%S GMT")
             return cached["payload"]
 
     target_date = _years_ago_date(now, 50)
@@ -73,7 +73,7 @@ def get_episode_today(request: Request, response: Response):
 
     ttl = max(int((expires_at - now).total_seconds()), 0)
     response.headers["Cache-Control"] = f"public, max-age={ttl}"
-    response.headers["Expires"] = expires_at.strftime("%a, %d %b %Y %H:%M:%S GMT")
+    response.headers["Expires"] = expires_at.astimezone(UTC).strftime("%a, %d %b %Y %H:%M:%S GMT")
     return payload
 
 
