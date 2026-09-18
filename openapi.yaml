@@ -10,7 +10,7 @@ info:
     and administrative write operations require OAuth 2.0 authorization.
 
 servers:
-  - url: https://virtserver.swaggerhub.com/otrwalter/CBSRMT/1.0.0
+  - url: /
     description: CBS Radio Mystery Theater API
 
 tags:
@@ -1019,7 +1019,7 @@ components:
       type: oauth2
       flows:
         clientCredentials:
-          tokenUrl: http://example.com/oauth/token
+          tokenUrl: /oauth/token
           scopes:
             read: Allows reading protected resources.
             write: Allows modifying protected resources.
