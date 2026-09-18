@@ -38,13 +38,16 @@ def _years_ago_date(now: datetime, years: int) -> date:
 
 
 @router.get("/episode/today", operation_id="getEpisodeToday")
-def get_episode_today(request: Request):
+def get_episode_today(request: Request, response: Response):
     now = datetime.now(CENTRAL)
     key = _today_cache_key(now)
 
     with _today_cache_lock:
         cached = _today_cache.get(key)
         if cached is not None and cached["expires_at"] > now:
+            ttl = max(int((cached["expires_at"] - now).total_seconds()), 0)
+            response.headers["Cache-Control"] = f"public, max-age={ttl}"
+            response.headers["Expires"] = cached["expires_at"].strftime("%a, %d %b %Y %H:%M:%S GMT")
             return cached["payload"]
 
     target_date = _years_ago_date(now, 50)
@@ -68,6 +71,9 @@ def get_episode_today(request: Request):
         _today_cache.clear()
         _today_cache[key] = {"expires_at": expires_at, "payload": payload}
 
+    ttl = max(int((expires_at - now).total_seconds()), 0)
+    response.headers["Cache-Control"] = f"public, max-age={ttl}"
+    response.headers["Expires"] = expires_at.strftime("%a, %d %b %Y %H:%M:%S GMT")
     return payload
 
 
