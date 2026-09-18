@@ -8,6 +8,9 @@ from pydantic import BaseModel, ConfigDict
 from .auth import Principal, issue_local_token, require_read, require_write
 
 router = APIRouter()
+READ_DEPENDENCY = READ_DEPENDENCY
+WRITE_DEPENDENCY = WRITE_DEPENDENCY
+
 
 @router.post("/oauth/token", include_in_schema=False)
 def oauth_token(
@@ -184,7 +187,7 @@ def list_users(
     request: Request,
     page: int = Query(1, ge=1),
     limit: int = Query(5, ge=1, le=100),
-    _: Principal = Depends(require_read),
+    _: Principal = READ_DEPENDENCY,
 ):
     return db(request).scalar_json("SELECT api.get_users(%s,%s)", (page, limit))
 
@@ -193,7 +196,7 @@ def list_users(
 def get_user(
     request: Request,
     userId: int = Path(..., ge=1),
-    _: Principal = Depends(require_read),
+    _: Principal = READ_DEPENDENCY,
 ):
     value = db(request).scalar_json("SELECT api.get_user(%s)", (userId,))
     return found(value, "User")
@@ -204,7 +207,7 @@ def update_user(
     request: Request,
     userId: int = Path(..., ge=1),
     patch: UserUpdate | None = None,
-    _: Principal = Depends(require_write),
+    _: Principal = WRITE_DEPENDENCY,
 ):
     payload = {} if patch is None else patch.model_dump(exclude_unset=True)
     value = db(request).scalar_json("SELECT admin.update_user(%s,%s::jsonb)", (userId, payload))
@@ -215,7 +218,7 @@ def update_user(
 def delete_user(
     request: Request,
     userId: int = Path(..., ge=1),
-    _: Principal = Depends(require_write),
+    _: Principal = WRITE_DEPENDENCY,
 ):
     deleted = db(request).execute_scalar("SELECT admin.delete_user(%s)", (userId,))
     if not deleted:
