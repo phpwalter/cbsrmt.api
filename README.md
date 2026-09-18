@@ -35,6 +35,7 @@ Default address: `http://127.0.0.1:8000`
 ## Main endpoints
 
 - `GET /ping`
+- `GET /episode/today` — 50-years-ago broadcast, Central Time, cached until midnight
 - `GET /episodes`
 - `GET /episodes/{episodeNumber}`
 - `GET /episodes/{episodeNumber}/cast`
