@@ -67,4 +67,12 @@ jobs:
               listing = client.get('/episodes', params={'limit': 5})
               assert listing.status_code == 200, listing.text
               assert listing.json()['pagination']['total'] == 1399
+
+              today = client.get('/episode/today')
+              assert today.status_code == 200, today.text
+              payload = today.json()
+              assert payload['years_ago'] == 50
+              assert 'broadcasts' in payload
+              assert 'cache_expires_at' in payload
+              assert today.headers['Cache-Control'].startswith('public, max-age=')
           PY
