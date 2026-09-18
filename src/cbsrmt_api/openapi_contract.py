@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
-
 import yaml
 
 
@@ -19,7 +17,7 @@ def contract_path() -> Path:
     raise FileNotFoundError("openapi.yaml was not found in the application runtime.")
 
 
-def load_contract() -> dict[str, Any]:
+def load_contract() -> dict[str, object]:
     with contract_path().open("r", encoding="utf-8") as handle:
         return yaml.safe_load(handle)
 
