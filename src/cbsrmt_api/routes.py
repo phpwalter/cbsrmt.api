@@ -2,12 +2,25 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, Response
+from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 
-from .auth import Principal, require_read, require_write
+from .auth import Principal, issue_local_token, require_read, require_write
 
 router = APIRouter()
+
+@router.post("/oauth/token", include_in_schema=False)
+def oauth_token(
+    request: Request,
+    grant_type: str = Form(...),
+    client_id: str = Form(...),
+    client_secret: str = Form(...),
+    scope: str = Form("read"),
+):
+    if grant_type != "client_credentials":
+        raise HTTPException(status_code=400, detail="Only client_credentials is supported.")
+    return issue_local_token(client_id, client_secret, scope, request)
+
 
 
 def db(request: Request):
