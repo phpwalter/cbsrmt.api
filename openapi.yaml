@@ -961,6 +961,10 @@ components:
           type: string
           nullable: true
           description: Display-ready cast member name.
+        cast_id_name:
+          type: string
+          nullable: true
+          description: Stable cast image key from the source cast record.
         appearance_count:
           type: integer
           minimum: 0
