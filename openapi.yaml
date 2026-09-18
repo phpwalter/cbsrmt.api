@@ -53,6 +53,35 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /episode/today:
+    get:
+      tags: [Episodes]
+      operationId: getEpisodeToday
+      summary: Returns the CBS RMT broadcast from 50 years ago today.
+      description: >-
+        Uses America/Chicago as the authoritative calendar day. If no episode was
+        broadcast on the exact anniversary date, the most recent prior broadcast
+        date is used. The response may include multiple broadcasts from the
+        resolved date and is cached in memory until the end of the current
+        Central Time day.
+      security: []
+      responses:
+        '200':
+          description: Anniversary broadcast data.
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/RateLimitLimit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/RateLimitRemaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/RateLimitReset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodayEpisodeResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /episodes:
     get:
       tags: [Episodes]
@@ -728,6 +757,55 @@ components:
           type: integer
           minimum: 0
           example: 280
+
+    TodayBroadcast:
+      type: object
+      required: [broadcast_type, broadcast_date, episode]
+      properties:
+        broadcast_type:
+          type: string
+          enum: [original, repeat]
+        broadcast_sequence:
+          type: integer
+          nullable: true
+        broadcast_date:
+          type: string
+          format: date
+        episode:
+          $ref: '#/components/schemas/EpisodeSummary'
+
+    TodayEpisodeResponse:
+      type: object
+      required:
+        - today
+        - anniversary_date
+        - years_ago
+        - fallback_used
+        - broadcasts
+        - cache_expires_at
+      properties:
+        today:
+          type: string
+          format: date
+        anniversary_date:
+          type: string
+          format: date
+        years_ago:
+          type: integer
+          enum: [50]
+        resolved_broadcast_date:
+          type: string
+          format: date
+          nullable: true
+        fallback_used:
+          type: boolean
+        broadcasts:
+          type: array
+          items:
+            $ref: '#/components/schemas/TodayBroadcast'
+        cache_expires_at:
+          type: string
+          format: date-time
 
     Episode:
       type: object
