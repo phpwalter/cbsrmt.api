@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 
 from .auth import Principal, require_read, require_write
@@ -54,19 +54,19 @@ def list_episodes(
 
 
 @router.get("/episodes/{episodeNumber}", operation_id="getEpisodeByNumber")
-def get_episode(request: Request, episodeNumber: int = Field(ge=1)):
+def get_episode(request: Request, episodeNumber: int = Path(..., ge=1)):
     value = db(request).scalar_json("SELECT api.get_episode(%s)", (episodeNumber,))
     return found(value, "Episode")
 
 
 @router.get("/episodes/{episodeNumber}/cast", operation_id="getEpisodeCast")
-def get_episode_cast(request: Request, episodeNumber: int = Field(ge=1)):
+def get_episode_cast(request: Request, episodeNumber: int = Path(..., ge=1)):
     value = db(request).scalar_json("SELECT api.get_episode_cast(%s)", (episodeNumber,))
     return found(value, "Episode")
 
 
 @router.get("/episodes/{episodeNumber}/writers", operation_id="getEpisodeWriters")
-def get_episode_writers(request: Request, episodeNumber: int = Field(ge=1)):
+def get_episode_writers(request: Request, episodeNumber: int = Path(..., ge=1)):
     value = db(request).scalar_json("SELECT api.get_episode_writers(%s)", (episodeNumber,))
     return found(value, "Episode")
 
@@ -82,7 +82,7 @@ def list_cast(
 
 
 @router.get("/cast/{castId}", operation_id="getCastMember")
-def get_cast_member(request: Request, castId: int = Field(ge=1)):
+def get_cast_member(request: Request, castId: int = Path(..., ge=1)):
     value = db(request).scalar_json("SELECT api.get_cast_member(%s)", (castId,))
     return found(value, "Cast member")
 
@@ -90,7 +90,7 @@ def get_cast_member(request: Request, castId: int = Field(ge=1)):
 @router.get("/cast/{castId}/episodes", operation_id="listEpisodesByCastMember")
 def list_cast_episodes(
     request: Request,
-    castId: int = Field(ge=1),
+    castId: int = Path(..., ge=1),
     page: int = Query(1, ge=1),
     limit: int = Query(5, ge=1, le=100),
     sort: Literal["episode_number", "episode_name", "broadcast_date"] = "episode_number",
@@ -114,7 +114,7 @@ def list_writers(
 
 
 @router.get("/writers/{writerId}", operation_id="getWriter")
-def get_writer(request: Request, writerId: int = Field(ge=1)):
+def get_writer(request: Request, writerId: int = Path(..., ge=1)):
     value = db(request).scalar_json("SELECT api.get_writer(%s)", (writerId,))
     return found(value, "Writer")
 
@@ -122,7 +122,7 @@ def get_writer(request: Request, writerId: int = Field(ge=1)):
 @router.get("/writers/{writerId}/episodes", operation_id="listEpisodesByWriter")
 def list_writer_episodes(
     request: Request,
-    writerId: int = Field(ge=1),
+    writerId: int = Path(..., ge=1),
     page: int = Query(1, ge=1),
     limit: int = Query(5, ge=1, le=100),
     sort: Literal["episode_number", "episode_name", "broadcast_date"] = "episode_number",
@@ -143,7 +143,7 @@ def list_genres(request: Request):
 @router.get("/genres/{genreId}/episodes", operation_id="listEpisodesByGenre")
 def list_genre_episodes(
     request: Request,
-    genreId: int = Field(ge=1),
+    genreId: int = Path(..., ge=1),
     page: int = Query(1, ge=1),
     limit: int = Query(5, ge=1, le=100),
     sort: Literal["episode_number", "episode_name", "broadcast_date"] = "episode_number",
@@ -179,7 +179,7 @@ def list_users(
 @router.get("/users/{userId}", operation_id="getUserById")
 def get_user(
     request: Request,
-    userId: int = Field(ge=1),
+    userId: int = Path(..., ge=1),
     _: Principal = Depends(require_read),
 ):
     value = db(request).scalar_json("SELECT api.get_user(%s)", (userId,))
@@ -189,7 +189,7 @@ def get_user(
 @router.patch("/users/{userId}", operation_id="updateUser")
 def update_user(
     request: Request,
-    userId: int = Field(ge=1),
+    userId: int = Path(..., ge=1),
     patch: UserUpdate | None = None,
     _: Principal = Depends(require_write),
 ):
@@ -201,7 +201,7 @@ def update_user(
 @router.delete("/users/{userId}", operation_id="deleteUser", status_code=204)
 def delete_user(
     request: Request,
-    userId: int = Field(ge=1),
+    userId: int = Path(..., ge=1),
     _: Principal = Depends(require_write),
 ):
     deleted = db(request).execute_scalar("SELECT admin.delete_user(%s)", (userId,))
