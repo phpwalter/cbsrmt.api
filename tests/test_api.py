@@ -62,6 +62,18 @@ class FakeDatabase:
                 "data": [],
                 "pagination": {"page": page, "limit": limit, "total": 0, "pages": 0},
             }
+        if "api.get_cast(" in sql:
+            return {
+                "data": [{
+                    "id": 1,
+                    "first_name": "Test",
+                    "last_name": "Actor",
+                    "display_name": "Test Actor",
+                    "appearance_count": 12,
+                    "portrait": "/assets/cast/1.png",
+                }],
+                "pagination": {"page": params[0], "limit": params[1], "total": 1, "pages": 1},
+            }
         if "api.get_genres" in sql:
             return {"data": [{"id": 1, "name": "Mystery"}]}
         if "api.search_catalog" in sql:
@@ -171,6 +183,26 @@ def test_episode_query_contract():
         assert params[4] == "Mystery,Suspense"
         assert params[7] == "broadcast_date"
         assert params[8] == "desc"
+
+
+def test_cast_archive_query_contract():
+    with client() as (c, db):
+        response = c.get(
+            "/cast",
+            params={
+                "page": 2,
+                "limit": 10,
+                "search": "Adams",
+                "initial": "A",
+                "sort": "appearances",
+                "order": "desc",
+            },
+        )
+        assert response.status_code == 200
+        assert response.json()["data"][0]["appearance_count"] == 12
+        sql, params = db.calls[-1]
+        assert "api.get_cast" in sql
+        assert params == (2, 10, "Adams", "A", "appearances", "desc")
 
 
 def test_search_shape():
