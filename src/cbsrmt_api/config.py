@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     auth_audience: str | None = None
     auth_algorithms: str = "RS256"
     jwt_secret: str | None = None
+    oauth_client_id: str | None = None
+    oauth_client_secret: str | None = None
+    oauth_token_ttl_seconds: int = Field(default=3600, ge=60, le=86400)
 
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
