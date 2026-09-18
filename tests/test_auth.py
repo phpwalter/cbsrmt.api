@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import jwt
 from fastapi.testclient import TestClient
+from test_api import FakeDatabase
 
 from cbsrmt_api.config import get_settings
 from cbsrmt_api.main import create_app
-from test_api import FakeDatabase
 
 
 def test_missing_token_is_401(monkeypatch):
