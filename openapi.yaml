@@ -604,7 +604,7 @@ components:
     EpisodeSearch:
       name: search
       in: query
-      description: Case-insensitive search of episode title and plot text.
+      description: Case-insensitive search of episode title, plot text, original air date, and recorded broadcast dates including repeats.
       schema:
         type: string
         minLength: 1
@@ -621,10 +621,14 @@ components:
     Genre:
       name: genre
       in: query
-      description: Filters episodes by genre name.
+      description: Filters episodes by genre name. Repeat this parameter to require an episode to match every selected genre.
+      style: form
+      explode: true
       schema:
-        type: string
-        minLength: 1
+        type: array
+        items:
+          type: string
+          minLength: 1
 
     CastName:
       name: cast
