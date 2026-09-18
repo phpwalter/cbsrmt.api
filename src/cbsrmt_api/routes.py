@@ -29,6 +29,14 @@ def _end_of_day(now: datetime) -> datetime:
     return datetime.combine(tomorrow, time.min, tzinfo=CENTRAL) - timedelta(microseconds=1)
 
 
+def _years_ago_date(now: datetime, years: int) -> datetime.date:
+    try:
+        return now.date().replace(year=now.year - years)
+    except ValueError:
+        # February 29 maps to February 28 when the target year is not a leap year.
+        return now.date().replace(year=now.year - years, day=28)
+
+
 @router.get("/episode/today", operation_id="getEpisodeToday")
 def get_episode_today(request: Request):
     now = datetime.now(CENTRAL)
@@ -39,7 +47,7 @@ def get_episode_today(request: Request):
         if cached is not None and cached["expires_at"] > now:
             return cached["payload"]
 
-    target_date = now.date().replace(year=now.year - 50)
+    target_date = _years_ago_date(now, 50)
     resolved = db(request).scalar_json(
         "SELECT api.get_anniversary_broadcasts(%s)",
         (target_date,),
