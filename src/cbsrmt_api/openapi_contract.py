@@ -7,12 +7,20 @@ from typing import Any
 import yaml
 
 
-ROOT = Path(__file__).resolve().parents[2]
-OPENAPI_PATH = ROOT / "openapi.yaml"
+def contract_path() -> Path:
+    candidates = (
+        Path.cwd() / "openapi.yaml",
+        Path(__file__).resolve().parents[2] / "openapi.yaml",
+        Path(__file__).resolve().parent / "openapi.yaml",
+    )
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    raise FileNotFoundError("openapi.yaml was not found in the application runtime.")
 
 
 def load_contract() -> dict[str, Any]:
-    with OPENAPI_PATH.open("r", encoding="utf-8") as handle:
+    with contract_path().open("r", encoding="utf-8") as handle:
         return yaml.safe_load(handle)
 
 
