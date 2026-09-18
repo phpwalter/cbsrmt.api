@@ -8,8 +8,8 @@ from pydantic import BaseModel, ConfigDict
 from .auth import Principal, issue_local_token, require_read, require_write
 
 router = APIRouter()
-READ_DEPENDENCY = READ_DEPENDENCY
-WRITE_DEPENDENCY = WRITE_DEPENDENCY
+READ_DEPENDENCY = Depends(require_read)
+WRITE_DEPENDENCY = Depends(require_write)
 
 
 @router.post("/oauth/token", include_in_schema=False)
