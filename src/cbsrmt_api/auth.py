@@ -114,8 +114,11 @@ def issue_local_token(client_id: str, client_secret: str, scope: str, request: R
     if settings.auth_audience:
         claims["aud"] = settings.auth_audience
 
-    algorithm = settings.algorithms[0]
-    token = jwt.encode(claims, settings.jwt_secret, algorithm=algorithm)
+    token = jwt.encode(
+        claims,
+        settings.jwt_secret,
+        algorithm=settings.oauth_token_algorithm,
+    )
     return {
         "access_token": token,
         "token_type": "Bearer",
