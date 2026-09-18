@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, date, datetime, time, timedelta
 from threading import Lock
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, Request, Response
@@ -122,7 +122,7 @@ def list_episodes(
     limit: int = Query(5, ge=1, le=100),
     search: str | None = Query(None, min_length=1),
     year: int | None = Query(None, ge=1974, le=1982),
-    genre: list[str] | None = Query(None),
+    genre: Annotated[list[str] | None, Query()] = None,
     cast: str | None = Query(None, min_length=1),
     writer: str | None = Query(None, min_length=1),
     sort: Literal["episode_number", "episode_name", "broadcast_date"] = "episode_number",
