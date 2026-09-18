@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, time, timedelta
+from datetime import date, datetime, time, timedelta
 from threading import Lock
 from typing import Any, Literal
 from zoneinfo import ZoneInfo
@@ -29,7 +29,7 @@ def _end_of_day(now: datetime) -> datetime:
     return datetime.combine(tomorrow, time.min, tzinfo=CENTRAL) - timedelta(microseconds=1)
 
 
-def _years_ago_date(now: datetime, years: int) -> datetime.date:
+def _years_ago_date(now: datetime, years: int) -> date:
     try:
         return now.date().replace(year=now.year - years)
     except ValueError:
