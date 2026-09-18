@@ -1,0 +1,39 @@
+[project]
+name = "cbsrmt-api"
+version = "1.0.0"
+description = "CBS Radio Mystery Theater Episode Guide API"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.34,<1",
+  "psycopg[binary,pool]>=3.2,<4",
+  "pydantic-settings>=2.7,<3",
+  "PyJWT[crypto]>=2.10,<3",
+  "PyYAML>=6.0,<7",
+]
+
+[project.optional-dependencies]
+dev = [
+  "httpx>=0.28,<1",
+  "pytest>=8.3,<9",
+  "pytest-cov>=6,<7",
+  "ruff>=0.11,<1",
+]
+
+[project.scripts]
+cbsrmt-api = "cbsrmt_api.main:run"
+
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
