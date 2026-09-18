@@ -621,7 +621,7 @@ components:
     Genre:
       name: genre
       in: query
-      description: Filters episodes by genre name. Repeat this parameter to require an episode to match every selected genre.
+      description: Filters episodes by genre name. Repeat this parameter to return episodes matching any selected genre.
       style: form
       explode: true
       schema:
