@@ -15,6 +15,28 @@ class FakeDatabase:
         self.calls.append((sql, params))
         if "api.ping" in sql:
             return {"status": "ok"}
+        if "api.get_anniversary_broadcasts" in sql:
+            target = params[0]
+            return {
+                "requested_date": target.isoformat(),
+                "resolved_broadcast_date": target.isoformat(),
+                "fallback_used": False,
+                "broadcasts": [
+                    {
+                        "broadcast_type": "original",
+                        "broadcast_sequence": 1,
+                        "broadcast_date": target.isoformat(),
+                        "episode": {
+                            "episode_number": 1,
+                            "episode_name": "Dead of Night",
+                            "episode_plot": "Test plot",
+                            "broadcast_date": "1974-01-06",
+                            "thumbnail": "/assets/episodes/0001.png",
+                            "audio": {"available": False},
+                        },
+                    }
+                ],
+            }
         if "api.get_episode(" in sql:
             if params[0] == 999999:
                 return None
@@ -23,7 +45,7 @@ class FakeDatabase:
                 "episode_name": "Test Episode",
                 "episode_plot": None,
                 "broadcast_date": "1974-01-06",
-                "thumbnail": f"/public/assets/episodes/{params[0]}.png",
+                "thumbnail": f"/assets/episodes/{params[0]:04d}.png",
                 "audio": {
                     "available": False,
                     "stream_url": None,
@@ -87,6 +109,26 @@ def test_ping():
         assert response.status_code == 200
         assert response.json() == {"status": "ok"}
         assert "X-RateLimit-Limit" in response.headers
+
+
+def test_today_episode_contract_and_cache():
+    from cbsrmt_api.routes import _today_cache
+
+    _today_cache.clear()
+    with client() as (c, db):
+        first = c.get("/episode/today")
+        second = c.get("/episode/today")
+
+        assert first.status_code == 200
+        payload = first.json()
+        assert payload["years_ago"] == 50
+        assert payload["fallback_used"] is False
+        assert payload["broadcasts"][0]["episode"]["thumbnail"] == "/assets/episodes/0001.png"
+        assert payload["cache_expires_at"]
+
+        calls = [sql for sql, _ in db.calls if "api.get_anniversary_broadcasts" in sql]
+        assert len(calls) == 1
+        assert second.json() == payload
 
 
 def test_episode_success_and_not_found():
@@ -158,4 +200,5 @@ def test_openapi_document_is_repository_contract():
         document = response.json()
         assert document["openapi"] == "3.0.3"
         assert "/episodes" in document["paths"]
+        assert "/episode/today" in document["paths"]
         assert "/users/{userId}" in document["paths"]
