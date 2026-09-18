@@ -153,13 +153,14 @@ def test_episode_query_contract():
     with client() as (c, db):
         response = c.get(
             "/episodes",
-            params={
-                "page": 2,
-                "limit": 10,
-                "genre": "Mystery",
-                "sort": "broadcast_date",
-                "order": "desc",
-            },
+            params=[
+                ("page", "2"),
+                ("limit", "10"),
+                ("genre", "Mystery"),
+                ("genre", "Suspense"),
+                ("sort", "broadcast_date"),
+                ("order", "desc"),
+            ],
         )
         assert response.status_code == 200
         assert response.json()["pagination"]["page"] == 2
@@ -167,7 +168,7 @@ def test_episode_query_contract():
         assert "api.get_episodes" in sql
         assert params[0] == 2
         assert params[1] == 10
-        assert params[4] == "Mystery"
+        assert params[4] == "Mystery,Suspense"
         assert params[7] == "broadcast_date"
         assert params[8] == "desc"
 
