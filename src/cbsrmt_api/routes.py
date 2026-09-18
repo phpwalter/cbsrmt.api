@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, Request, Response
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 from .auth import Principal, issue_local_token, require_read, require_write
 
