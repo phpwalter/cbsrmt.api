@@ -61,6 +61,14 @@ def create_app(database: Database | None = None) -> FastAPI:
         lifespan=lifespan,
     )
 
+    app.state.settings = settings
+    if database is not None:
+        app.state.db = database
+    if settings.auth_jwks_url:
+        app.state.jwks_client = jwt.PyJWKClient(settings.auth_jwks_url)
+    else:
+        app.state.jwks_client = None
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.origins,
