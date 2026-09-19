@@ -127,10 +127,11 @@ def list_episodes(
     writer: str | None = Query(None, min_length=1),
     sort: Literal["episode_number", "episode_name", "broadcast_date"] = "episode_number",
     order: Literal["asc", "desc"] = "asc",
+    episode: int | None = Query(None, ge=1),
 ):
     return db(request).scalar_json(
-        "SELECT api.get_episodes(%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-        (page, limit, search, year, ",".join(genre) if genre else None, cast, writer, sort, order),
+        "SELECT api.get_episodes(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+        (page, limit, search, year, ",".join(genre) if genre else None, cast, writer, sort, order, episode),
     )
 
 
