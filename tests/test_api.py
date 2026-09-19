@@ -172,6 +172,7 @@ def test_episode_query_contract():
                 ("genre", "Suspense"),
                 ("sort", "broadcast_date"),
                 ("order", "desc"),
+                ("episode", "42"),
             ],
         )
         assert response.status_code == 200
@@ -183,6 +184,7 @@ def test_episode_query_contract():
         assert params[4] == "Mystery,Suspense"
         assert params[7] == "broadcast_date"
         assert params[8] == "desc"
+        assert params[9] == 42
 
 
 def test_cast_archive_query_contract():
