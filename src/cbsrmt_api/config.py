@@ -36,6 +36,12 @@ class Settings(BaseSettings):
     rate_limit_limit: int = Field(default=100, ge=1)
     rate_limit_window_seconds: int = Field(default=60, ge=1)
 
+    # Episode MP3 files stay outside the repository. AUDIO_ROOT points at the
+    # local directory containing four-digit files such as 0523.mp3.
+    audio_root: str | None = None
+    audio_url_prefix: str = "/audio"
+    audio_public_base_url: str = "http://127.0.0.1:8000/audio"
+
     @property
     def algorithms(self) -> list[str]:
         return [item.strip() for item in self.auth_algorithms.split(",") if item.strip()]
