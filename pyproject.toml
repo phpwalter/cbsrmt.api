@@ -23,6 +23,7 @@ dev = [
 
 [project.scripts]
 cbsrmt-api = "cbsrmt_api.main:run"
+cbsrmt-sync-audio = "cbsrmt_api.audio_library:run"
 
 [build-system]
 requires = ["setuptools>=75", "wheel"]
