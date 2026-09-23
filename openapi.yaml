@@ -311,6 +311,27 @@ paths:
           schema:
             type: string
             minLength: 1
+        - name: initial
+          in: query
+          description: Filters writers by the first letter of last name, falling back to first name.
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 1
+        - name: sort
+          in: query
+          description: Writer result sort field.
+          schema:
+            type: string
+            enum: [appearances, name]
+            default: appearances
+        - name: order
+          in: query
+          description: Writer result sort direction.
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
       responses:
         '200':
           description: Paginated writer results.
@@ -1013,6 +1034,18 @@ components:
           type: string
           nullable: true
           description: Display-ready writer name.
+        writer_id_name:
+          type: string
+          nullable: true
+          description: Stable source identifier used for portrait lookup.
+        appearance_count:
+          type: integer
+          minimum: 0
+          description: Number of distinct CBS Radio Mystery Theater episodes credited to the writer.
+        portrait:
+          type: string
+          nullable: true
+          description: Frontend portrait path derived from writer_id_name.
 
     WriterCollection:
       type: object

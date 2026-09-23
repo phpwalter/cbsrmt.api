@@ -195,10 +195,16 @@ def list_cast_episodes(
 def list_writers(
     request: Request,
     page: int = Query(1, ge=1),
-    limit: int = Query(5, ge=1, le=100),
+    limit: int = Query(10, ge=1, le=100),
     search: str | None = Query(None, min_length=1),
+    initial: str | None = Query(None, min_length=1, max_length=1),
+    sort: Literal["appearances", "name"] = "appearances",
+    order: Literal["asc", "desc"] = "desc",
 ):
-    return db(request).scalar_json("SELECT api.get_writers(%s,%s,%s)", (page, limit, search))
+    return db(request).scalar_json(
+        "SELECT api.get_writers(%s,%s,%s,%s,%s,%s)",
+        (page, limit, search, initial, sort, order),
+    )
 
 
 @router.get("/writers/{writerId}", operation_id="getWriter")

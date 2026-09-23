@@ -74,6 +74,19 @@ class FakeDatabase:
                 }],
                 "pagination": {"page": params[0], "limit": params[1], "total": 1, "pages": 1},
             }
+        if "api.get_writers(" in sql:
+            return {
+                "data": [{
+                    "id": 2,
+                    "first_name": "Test",
+                    "last_name": "Writer",
+                    "display_name": "Test Writer",
+                    "writer_id_name": "twriter",
+                    "appearance_count": 8,
+                    "portrait": "/assets/cast/twriter.png",
+                }],
+                "pagination": {"page": params[0], "limit": params[1], "total": 1, "pages": 1},
+            }
         if "api.get_genres" in sql:
             return {"data": [{"id": 1, "name": "Mystery"}]}
         if "api.search_catalog" in sql:
@@ -205,6 +218,26 @@ def test_cast_archive_query_contract():
         sql, params = db.calls[-1]
         assert "api.get_cast" in sql
         assert params == (2, 10, "Adams", "A", "appearances", "desc")
+
+
+def test_writer_archive_query_contract():
+    with client() as (c, db):
+        response = c.get(
+            "/writers",
+            params={
+                "page": 2,
+                "limit": 10,
+                "search": "Wilson",
+                "initial": "W",
+                "sort": "name",
+                "order": "asc",
+            },
+        )
+        assert response.status_code == 200
+        assert response.json()["data"][0]["appearance_count"] == 8
+        sql, params = db.calls[-1]
+        assert "api.get_writers" in sql
+        assert params == (2, 10, "Wilson", "W", "name", "asc")
 
 
 def test_search_shape():
