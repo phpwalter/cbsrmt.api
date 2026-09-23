@@ -84,3 +84,85 @@ Responses include `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and `X-RateLimit
 ```
 
 CI runs unit tests and a PostgreSQL 16 integration test that installs the real `cbsrmt.db` schema/data and exercises the API.
+
+
+## Local episode audio library
+
+Episode MP3 files are intentionally kept outside Git. The API can expose a local
+directory as read-only media and register those URLs in
+`catalog.episode_media`.
+
+Configure `.env`:
+
+```text
+AUDIO_ROOT=C:\cbsrmt\audio
+AUDIO_URL_PREFIX=/audio
+AUDIO_PUBLIC_BASE_URL=http://127.0.0.1:8000/audio
+```
+
+The audio directory uses the four-digit episode-number convention:
+
+```text
+C:\cbsrmt\audio\
+  0523.mp3
+  0524.mp3
+  0733.mp3
+```
+
+Do not add this directory to the repository.
+
+After adding or removing local files, register the currently present MP3 files:
+
+```powershell
+.\sync_audio.ps1
+```
+
+The scanner accepts only filenames matching exactly four digits plus `.mp3`.
+For example, `0523.mp3` maps to episode 523. Files that do not match an
+existing episode are reported and skipped.
+
+For each matching file, the sync command calls the existing PostgreSQL function:
+
+```sql
+admin.set_episode_audio(
+    episode_number,
+    stream_url,
+    NULL,
+    'audio/mpeg'
+)
+```
+
+That function deactivates any prior active audio row for the episode and creates
+the new `catalog.episode_media` row. The API then exposes the result through
+`api.audio_json()`, `GET /episodes/{episodeNumber}`, and
+`GET /episode/today`.
+
+With the default development configuration, `0523.mp3` is served at:
+
+```text
+http://127.0.0.1:8000/audio/0523.mp3
+```
+
+and the database stores that URL as the episode's active audio stream URL.
+
+The normal workflow for a new recording is therefore:
+
+```text
+copy NNNN.mp3 into AUDIO_ROOT
+        |
+        v
+.\sync_audio.ps1
+        |
+        v
+catalog.episode_media
+        |
+        v
+CBS RMT API audio metadata
+        |
+        v
+frontend Play button
+```
+
+`AUDIO_PUBLIC_BASE_URL` must be a URL that the browser running the frontend
+can reach. The default loopback URL is appropriate when the frontend and browser
+run on the same Windows machine.
