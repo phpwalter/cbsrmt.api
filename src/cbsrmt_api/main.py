@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import jwt
 import uvicorn
@@ -10,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from psycopg import Error as PsycopgError
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.staticfiles import StaticFiles
 
 from .config import get_settings
 from .db import Database
@@ -93,6 +95,14 @@ def create_app(database: Database | None = None) -> FastAPI:
     app.add_exception_handler(Exception, unhandled_exception_handler)
 
     app.include_router(router)
+
+    if settings.audio_root:
+        audio_root = Path(settings.audio_root).expanduser().resolve()
+        app.mount(
+            settings.audio_url_prefix,
+            StaticFiles(directory=str(audio_root), check_dir=False),
+            name="episode-audio",
+        )
 
     @app.get("/openapi.json", include_in_schema=False)
     def contract_json() -> JSONResponse:
