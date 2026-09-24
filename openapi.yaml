@@ -898,8 +898,19 @@ components:
           items:
             $ref: '#/components/schemas/Genre'
           readOnly: true
+        star:
+          allOf:
+            - $ref: '#/components/schemas/CastMember'
+          nullable: true
+          readOnly: true
+        co_stars:
+          type: array
+          items:
+            $ref: '#/components/schemas/CastMember'
+          readOnly: true
         cast:
           type: array
+          description: All billed performers in billing order. Retained for backward compatibility.
           items:
             $ref: '#/components/schemas/CastMember'
           readOnly: true
