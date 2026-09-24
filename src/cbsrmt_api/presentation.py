@@ -17,8 +17,19 @@ def normalize_episode_title(value: str) -> str:
     return f"{article} {title}"
 
 
+def normalize_episode_number(value: Any) -> Any:
+    """Return episode numbers as canonical integers without leading zeros."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str) and value.isdigit():
+        return int(value)
+    return value
+
+
 def normalize_episode_titles(value: Any) -> Any:
-    """Recursively normalize episode_name values in API response payloads."""
+    """Recursively normalize episode presentation values in API response payloads."""
     if isinstance(value, list):
         return [normalize_episode_titles(item) for item in value]
 
@@ -27,6 +38,8 @@ def normalize_episode_titles(value: Any) -> Any:
         for key, item in value.items():
             if key == "episode_name" and isinstance(item, str):
                 normalized[key] = normalize_episode_title(item)
+            elif key == "episode_number":
+                normalized[key] = normalize_episode_number(item)
             else:
                 normalized[key] = normalize_episode_titles(item)
         return normalized
