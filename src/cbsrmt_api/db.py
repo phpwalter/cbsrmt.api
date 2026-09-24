@@ -7,6 +7,8 @@ from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 from psycopg_pool import ConnectionPool
 
+from .presentation import normalize_episode_titles
+
 
 class Database:
     def __init__(self, dsn: str, min_size: int = 1, max_size: int = 10) -> None:
@@ -34,7 +36,7 @@ class Database:
             row = cur.fetchone()
             if row is None:
                 return None
-            return next(iter(row.values()))
+            return normalize_episode_titles(next(iter(row.values())))
 
     def execute_scalar(self, sql: str, params: Sequence[Any] = ()) -> Any:
         return self.scalar_json(sql, params)
