@@ -163,7 +163,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/CastMember'
+                      $ref: '#/components/schemas/CastCredit'
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -900,19 +900,19 @@ components:
           readOnly: true
         star:
           allOf:
-            - $ref: '#/components/schemas/CastMember'
+            - $ref: '#/components/schemas/CastCredit'
           nullable: true
           readOnly: true
         co_stars:
           type: array
           items:
-            $ref: '#/components/schemas/CastMember'
+            $ref: '#/components/schemas/CastCredit'
           readOnly: true
         cast:
           type: array
           description: All billed performers in billing order. Retained for backward compatibility.
           items:
-            $ref: '#/components/schemas/CastMember'
+            $ref: '#/components/schemas/CastCredit'
           readOnly: true
         writers:
           type: array
@@ -1015,6 +1015,24 @@ components:
           format: uri-reference
           nullable: true
           readOnly: true
+
+    CastCredit:
+      allOf:
+        - $ref: '#/components/schemas/CastMember'
+        - type: object
+          properties:
+            character_name:
+              type: string
+              nullable: true
+              description: Character portrayed by this cast member in this episode, when known.
+            cast_role:
+              type: string
+              enum: [star, co_star]
+              readOnly: true
+            billing_order:
+              type: integer
+              minimum: 1
+              readOnly: true
 
     CastCollection:
       type: object
