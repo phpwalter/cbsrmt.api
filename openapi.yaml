@@ -893,6 +893,13 @@ components:
           description: Episode artwork or thumbnail URL.
         audio:
           $ref: '#/components/schemas/AudioMetadata'
+        fisher_rubric:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          nullable: true
+          description: 100-point Fisher rubric episode rating.
         genres:
           type: array
           items:
@@ -946,6 +953,13 @@ components:
           nullable: true
         audio:
           $ref: '#/components/schemas/AudioMetadata'
+        fisher_rubric:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          nullable: true
+          description: 100-point Fisher rubric episode rating.
 
     EpisodeCollection:
       type: object
