@@ -52,6 +52,10 @@ class FakeDatabase:
                     "duration_seconds": None,
                     "media_type": None,
                 },
+                "fisher_rubric": 87.5,
+                "recording_quality": "GOOD",
+                "commercials": True,
+                "news": False,
                 "genres": [],
                 "cast": [],
                 "writers": [],
@@ -161,6 +165,9 @@ def test_episode_success_and_not_found():
         ok = c.get("/episodes/1")
         assert ok.status_code == 200
         assert ok.json()["episode_number"] == 1
+        assert ok.json()["recording_quality"] == "GOOD"
+        assert ok.json()["commercials"] is True
+        assert ok.json()["news"] is False
 
         missing = c.get("/episodes/999999")
         assert missing.status_code == 404
