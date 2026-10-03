@@ -900,6 +900,19 @@ components:
           maximum: 100
           nullable: true
           description: 100-point Fisher rubric episode rating.
+        recording_quality:
+          type: string
+          enum: [EXCELLENT, GOOD, FAIR, POOR]
+          nullable: true
+          description: Explicit recording-quality classification from the source rubric.
+        commercials:
+          type: boolean
+          nullable: true
+          description: Whether the archived recording contains commercials; null when unknown.
+        news:
+          type: boolean
+          nullable: true
+          description: Whether the archived recording contains news; null when unknown.
         genres:
           type: array
           items:
@@ -960,6 +973,19 @@ components:
           maximum: 100
           nullable: true
           description: 100-point Fisher rubric episode rating.
+        recording_quality:
+          type: string
+          enum: [EXCELLENT, GOOD, FAIR, POOR]
+          nullable: true
+          description: Explicit recording-quality classification from the source rubric.
+        commercials:
+          type: boolean
+          nullable: true
+          description: Whether the archived recording contains commercials; null when unknown.
+        news:
+          type: boolean
+          nullable: true
+          description: Whether the archived recording contains news; null when unknown.
 
     EpisodeCollection:
       type: object
